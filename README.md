@@ -96,11 +96,11 @@ The sprite sheets use a **62×62 grid** matching emoji-datasource:
 ## Skin Tone Support
 
 All 1,875 skin tone variants are included:
-- Fitzpatrick Type 1-2 (🏻)
-- Fitzpatrick Type 3 (🏼)
-- Fitzpatrick Type 4 (🏽)
-- Fitzpatrick Type 5 (🏾)
-- Fitzpatrick Type 6 (🏿)
+- Fitzpatrick Type 1-2: 👋🏻
+- Fitzpatrick Type 3: 👋🏼
+- Fitzpatrick Type 4: 👋🏽
+- Fitzpatrick Type 5: 👋🏾
+- Fitzpatrick Type 6: 👋🏿
 
 ## License
 
