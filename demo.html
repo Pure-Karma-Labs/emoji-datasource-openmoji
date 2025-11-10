@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenMoji Sprite Sheet Demo</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px;
+      background: #f5f5f5;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    .demo-section {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .emoji-row {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .emoji {
+      background-image: url('./img/sheets/64.webp');
+      background-size: calc(66px * 62); /* (64px + 2px margin) * 62 grid cells */
+      width: 64px;
+      height: 64px;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+    }
+
+    .emoji-small {
+      background-image: url('./img/sheets/32.webp');
+      background-size: calc(34px * 62); /* (32px + 2px margin) * 62 grid cells */
+      width: 32px;
+      height: 32px;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+    }
+
+    .emoji-label {
+      font-size: 14px;
+      color: #666;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sheet-preview {
+      max-width: 100%;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+    }
+
+    .info {
+      background: #e3f2fd;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 20px 0;
+      font-size: 14px;
+      color: #1565c0;
+    }
+
+    .size-comparison {
+      display: flex;
+      gap: 40px;
+      align-items: flex-start;
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #333;
+    }
+
+    code {
+      background: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <h1>emoji-datasource-openmoji</h1>
+  <p class="subtitle">OpenMoji sprite sheets compatible with emoji-datasource</p>
+
+  <div class="demo-section">
+    <h2>Example Emojis (64px)</h2>
+    <div class="emoji-row">
+      <div class="emoji-label">
+        <div class="emoji" style="background-position: calc(32 * -66px - 1px) calc(47 * -66px - 1px);"></div>
+        <span>😀 grinning</span>
+      </div>
+      <div class="emoji-label">
+        <div class="emoji" style="background-position: calc(32 * -66px - 1px) calc(49 * -66px - 1px);"></div>
+        <span>😂 joy</span>
+      </div>
+      <div class="emoji-label">
+        <div class="emoji" style="background-position: calc(60 * -66px - 1px) calc(46 * -66px - 1px);"></div>
+        <span>❤️ heart</span>
+      </div>
+      <div class="emoji-label">
+        <div class="emoji" style="background-position: calc(12 * -66px - 1px) calc(61 * -66px - 1px);"></div>
+        <span>👍 thumbsup</span>
+      </div>
+      <div class="emoji-label">
+        <div class="emoji" style="background-position: calc(7 * -66px - 1px) calc(13 * -66px - 1px);"></div>
+        <span>🎉 tada</span>
+      </div>
+      <div class="emoji-label">
+        <div class="emoji" style="background-position: calc(30 * -66px - 1px) calc(30 * -66px - 1px);"></div>
+        <span>🔥 fire</span>
+      </div>
+      <div class="emoji-label">
+        <div class="emoji" style="background-position: calc(35 * -66px - 1px) calc(58 * -66px - 1px);"></div>
+        <span>🚀 rocket</span>
+      </div>
+      <div class="emoji-label">
+        <div class="emoji" style="background-position: calc(60 * -66px - 1px) calc(60 * -66px - 1px);"></div>
+        <span>⭐ star</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo-section">
+    <h2>Size Comparison</h2>
+    <div class="size-comparison">
+      <div>
+        <h3>64px sprites</h3>
+        <div class="emoji-row">
+          <div class="emoji" style="background-position: calc(32 * -66px - 1px) calc(47 * -66px - 1px);"></div>
+          <div class="emoji" style="background-position: calc(32 * -66px - 1px) calc(49 * -66px - 1px);"></div>
+          <div class="emoji" style="background-position: calc(60 * -66px - 1px) calc(46 * -66px - 1px);"></div>
+        </div>
+        <p><code>img/sheets/64.webp</code> - 2.45 MB</p>
+      </div>
+      <div>
+        <h3>32px sprites</h3>
+        <div class="emoji-row">
+          <div class="emoji-small" style="background-position: calc(32 * -34px - 1px) calc(47 * -34px - 1px);"></div>
+          <div class="emoji-small" style="background-position: calc(32 * -34px - 1px) calc(49 * -34px - 1px);"></div>
+          <div class="emoji-small" style="background-position: calc(60 * -34px - 1px) calc(46 * -34px - 1px);"></div>
+        </div>
+        <p><code>img/sheets/32.webp</code> - 0.97 MB</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo-section">
+    <h2>Sprite Sheet Preview (zoomed out)</h2>
+    <div class="info">
+      Full sprite sheet: 62×62 grid containing 3,786 emojis (1,911 base + 1,875 skin tone variants)
+    </div>
+    <img src="./img/sheets/64.webp" alt="OpenMoji sprite sheet" class="sheet-preview" style="width: 600px;">
+  </div>
+
+  <div class="demo-section">
+    <h2>Features</h2>
+    <ul>
+      <li>✅ Full compatibility with emoji-datasource grid layout (62×62)</li>
+      <li>✅ 3,786 emojis including 1,875 skin tone variants</li>
+      <li>✅ Smaller file sizes than Apple emoji sprites</li>
+      <li>✅ Open source OpenMoji design under CC-BY-SA 4.0</li>
+      <li>✅ WebP format for optimal compression</li>
+    </ul>
+  </div>
+</body>
+</html>

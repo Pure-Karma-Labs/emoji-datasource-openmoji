@@ -2,7 +2,7 @@
 
 OpenMoji emoji sprite sheets compatible with [emoji-datasource](https://www.npmjs.com/package/emoji-datasource). Drop-in replacement for `emoji-datasource-apple`, `emoji-datasource-google`, or `emoji-datasource-twitter`.
 
-![OpenMoji sprite sheet example](https://openmoji.org/images/openmoji-logo.svg)
+![OpenMoji emoji examples](./public/example-emojis-64px.png)
 
 ## Features
 
@@ -71,6 +71,8 @@ console.log(emoji.sheet_x, emoji.sheet_y); // Grid position in sprite sheet
 
 - `img/sheets/32.webp` - 32×32px emojis (2108×2108px total)
 - `img/sheets/64.webp` - 64×64px emojis (4092×4092px total)
+
+![Size comparison](./public/size-comparison.png)
 
 ## Building from Source
 
