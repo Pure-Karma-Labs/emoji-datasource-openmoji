@@ -22,13 +22,13 @@ async function main() {
   console.log('🎨 Building OpenMoji sprite sheets...\n');
 
   // Load emoji data
-  const emojiDataPath = path.join(__dirname, '../../node_modules/emoji-datasource/emoji.json');
+  const emojiDataPath = path.join(__dirname, '../node_modules/emoji-datasource/emoji.json');
   const emojiData = JSON.parse(fs.readFileSync(emojiDataPath, 'utf8'));
 
   console.log(`📊 Loaded ${emojiData.length} emojis from emoji-datasource`);
 
   // OpenMoji SVG directory
-  const openmojiDir = path.join(__dirname, '../../node_modules/openmoji/color/svg');
+  const openmojiDir = path.join(__dirname, '../node_modules/openmoji/color/svg');
 
   if (!fs.existsSync(openmojiDir)) {
     console.error('❌ OpenMoji directory not found:', openmojiDir);
