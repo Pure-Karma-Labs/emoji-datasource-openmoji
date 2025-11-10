@@ -74,6 +74,10 @@ console.log(emoji.sheet_x, emoji.sheet_y); // Grid position in sprite sheet
 
 ![Size comparison](./public/size-comparison.png)
 
+### Full Sprite Sheet (62×62 grid)
+
+![Complete sprite sheet](./public/sprite-sheet.png)
+
 ## Building from Source
 
 ```bash
