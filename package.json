@@ -1,0 +1,37 @@
+{
+  "name": "emoji-datasource-openmoji",
+  "version": "1.0.0",
+  "description": "OpenMoji emoji sprite sheets compatible with emoji-datasource. Drop-in replacement for emoji-datasource-apple/google/twitter.",
+  "main": "index.js",
+  "scripts": {
+    "build": "node scripts/build.js"
+  },
+  "keywords": [
+    "emoji",
+    "openmoji",
+    "sprite",
+    "spritesheet",
+    "emoji-datasource",
+    "unicode"
+  ],
+  "author": "Alex G",
+  "license": "CC-BY-SA-4.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alexg-g/emoji-datasource-openmoji.git"
+  },
+  "dependencies": {
+    "emoji-datasource": "^16.0.0",
+    "openmoji": "^16.0.0"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.4"
+  },
+  "files": [
+    "img/",
+    "scripts/",
+    "index.js",
+    "README.md",
+    "LICENSE"
+  ]
+}
