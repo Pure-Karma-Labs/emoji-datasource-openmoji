@@ -1,11 +1,13 @@
 name: Publish to npm
 
-# Publishes via npm trusted publishing (OIDC): no npm token is stored in this
-# repo. The trusted publisher on npmjs.com must name this repository and this
-# workflow file (publish.yml). Provenance is attached automatically.
+# Stages a release via npm trusted publishing (OIDC): no npm token is stored
+# in this repo. The trusted publisher on npmjs.com names this repository, this
+# workflow file (publish.yml) and the `npm` environment, with stage-only
+# permissions, so this workflow cannot publish directly.
 #
-# Release flow: bump "version" in package.json on main, then publish a GitHub
-# release tagged v<version>.
+# Release flow: bump "version" in package.json on main, publish a GitHub
+# release tagged v<version>, then a maintainer approves the staged package
+# with 2FA (npmjs.com -> Staged Packages, or `npm stage approve <stage-id>`).
 
 on:
   release:
@@ -39,9 +41,9 @@ jobs:
             exit 1
           fi
 
-      - name: Ensure npm supports trusted publishing (>= 11.5.1)
+      - name: Ensure npm supports staged publishing (>= 11.15.0)
         run: |
-          npm install -g npm@^11.5.1
+          npm install -g npm@^11.15.0
           npm --version
 
       # Images are committed build output (npm run build takes ~5 min and
@@ -49,5 +51,5 @@ jobs:
       - name: Check packed contents
         run: npm pack --dry-run
 
-      - name: Publish
-        run: npm publish
+      - name: Stage for maintainer approval
+        run: npm stage publish

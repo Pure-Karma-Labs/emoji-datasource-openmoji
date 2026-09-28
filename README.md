@@ -123,9 +123,11 @@ re-running produces no diff.
 
 ## Releasing
 
-Releases are published from GitHub Actions using npm trusted publishing
+Releases are staged from GitHub Actions using npm trusted publishing
 (`.github/workflows/publish.yml`), with no npm token. Bump `version` in `package.json` on
-`main`, then publish a GitHub release tagged `v<version>`.
+`main`, then publish a GitHub release tagged `v<version>`. The workflow runs
+`npm stage publish`, and a maintainer approves the staged package with 2FA before it
+goes live (npmjs.com → Staged Packages, or `npm stage approve <stage-id>`).
 
 ## Grid Layout
 
