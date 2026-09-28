@@ -24,7 +24,10 @@ const INDIVIDUAL_SIZE = 128; // Per-emoji image size
 const CONCURRENCY = 16;
 
 const TRANSPARENT = { r: 0, g: 0, b: 0, alpha: 0 };
-const WEBP_OPTIONS = { quality: 80, alphaQuality: 100, effort: 6 };
+// Sprite sheets are one large image decoded whole; per-emoji images are shown
+// at full size. Tune them separately: changing one must not re-encode the other.
+const SHEET_WEBP_OPTIONS = { quality: 80, alphaQuality: 100, effort: 6 };
+const IMAGE_WEBP_OPTIONS = { quality: 80, alphaQuality: 100, effort: 6 };
 
 async function main() {
   console.log('🎨 Building OpenMoji emoji images...\n');
@@ -168,7 +171,7 @@ async function generateSpriteSheet(emojiData, openmojiDir, emojiSize) {
 
   await canvas
     .composite(placed)
-    .webp(WEBP_OPTIONS)
+    .webp(SHEET_WEBP_OPTIONS)
     .toFile(outputPath);
 
   const stats = fs.statSync(outputPath);
@@ -201,7 +204,7 @@ async function generateIndividualImages(emojiData, openmojiDir, size) {
 
     const filename = entry.image.replace(/\.png$/, '.webp');
     await renderSvg(svgPath, size)
-      .webp(WEBP_OPTIONS)
+      .webp(IMAGE_WEBP_OPTIONS)
       .toFile(path.join(outputDir, filename));
     generated++;
   });

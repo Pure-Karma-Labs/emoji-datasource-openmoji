@@ -1,12 +1,15 @@
 /**
  * emoji-datasource-openmoji
  * OpenMoji emoji images compatible with emoji-datasource
+ *
+ * This entry point is for Node. Bundlers (webpack, Metro, Vite) should import
+ * the image files directly, e.g.
+ * `emoji-datasource-openmoji/img/openmoji/128/1f600.webp`.
  */
 
-const fs = require('fs');
-const path = require('path');
+const INDIVIDUAL_DIR_128 = `${__dirname}/img/openmoji/128`;
 
-const INDIVIDUAL_DIR_128 = path.join(__dirname, 'img/openmoji/128');
+let individualFiles = null;
 
 /**
  * Resolve the 128px image for an emoji-datasource entry.
@@ -19,8 +22,13 @@ function imagePath(image) {
   if (typeof image !== 'string') {
     return null;
   }
-  const filePath = path.join(INDIVIDUAL_DIR_128, path.basename(image).replace(/\.png$/, '.webp'));
-  return fs.existsSync(filePath) ? filePath : null;
+  const path = require('path');
+  // The directory is fixed at publish time, so list it once.
+  if (individualFiles === null) {
+    individualFiles = new Set(require('fs').readdirSync(INDIVIDUAL_DIR_128));
+  }
+  const filename = path.basename(image).replace(/\.png$/, '.webp');
+  return individualFiles.has(filename) ? path.join(INDIVIDUAL_DIR_128, filename) : null;
 }
 
 module.exports = {

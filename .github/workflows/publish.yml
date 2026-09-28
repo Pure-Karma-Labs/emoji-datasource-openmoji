@@ -1,9 +1,10 @@
 name: Publish to npm
 
 # Stages a release via npm trusted publishing (OIDC): no npm token is stored
-# in this repo. The trusted publisher on npmjs.com names this repository, this
-# workflow file (publish.yml) and the `npm` environment, with stage-only
-# permissions, so this workflow cannot publish directly.
+# in this repo. The trusted publisher on npmjs.com is stage-only, so this
+# workflow cannot publish directly. The enforcing control is the maintainer's
+# 2FA approval of the staged package; review the staged file list and version
+# before approving.
 #
 # Release flow: bump "version" in package.json on main, publish a GitHub
 # release tagged v<version>, then a maintainer approves the staged package
@@ -41,15 +42,34 @@ jobs:
             exit 1
           fi
 
-      - name: Ensure npm supports staged publishing (>= 11.15.0)
+      # Staged publishing needs npm >= 11.15.0. Pinned exactly; bump deliberately.
+      - name: Install pinned npm
         run: |
-          npm install -g npm@^11.15.0
+          npm install -g npm@11.20.0 --ignore-scripts
           npm --version
 
       # Images are committed build output (npm run build takes ~5 min and
       # needs the openmoji devDependency), so publish does not rebuild.
       - name: Check packed contents
-        run: npm pack --dry-run
+        run: |
+          npm pack --dry-run --json > "$RUNNER_TEMP/pack.json"
+          node -e '
+            const [pkg] = require(process.argv[1]);
+            const paths = pkg.files.map(f => f.path);
+            const images = paths.filter(p => p.startsWith("img/openmoji/128/")).length;
+            const problems = [];
+            if (images < 3786) problems.push(`only ${images} 128px images (expected >= 3786)`);
+            for (const p of ["index.js", "img/sheets/32.webp", "img/sheets/64.webp"]) {
+              if (!paths.includes(p)) problems.push(`missing ${p}`);
+            }
+            const stray = paths.filter(p => /^(scripts|public|node_modules)\//.test(p));
+            if (stray.length) problems.push(`unexpected files: ${stray.slice(0, 5).join(", ")}`);
+            if (problems.length) {
+              problems.forEach(p => console.log(`::error::${p}`));
+              process.exit(1);
+            }
+            console.log(`${paths.length} files, ${images} 128px images, ${(pkg.size / 1024 / 1024).toFixed(1)} MB packed`);
+          ' "$RUNNER_TEMP/pack.json"
 
       - name: Stage for maintainer approval
         run: npm stage publish

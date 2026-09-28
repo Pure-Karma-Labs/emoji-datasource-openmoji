@@ -20,10 +20,20 @@
     "type": "git",
     "url": "git+https://github.com/Pure-Karma-Labs/emoji-datasource-openmoji.git"
   },
-  "dependencies": {
+  "homepage": "https://github.com/Pure-Karma-Labs/emoji-datasource-openmoji#readme",
+  "bugs": {
+    "url": "https://github.com/Pure-Karma-Labs/emoji-datasource-openmoji/issues"
+  },
+  "peerDependencies": {
     "emoji-datasource": "^16.0.0"
   },
+  "peerDependenciesMeta": {
+    "emoji-datasource": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "emoji-datasource": "^16.0.0",
     "openmoji": "^17.0.0",
     "sharp": "^0.35.5"
   },
@@ -32,12 +42,5 @@
     "index.js",
     "README.md",
     "LICENSE"
-  ],
-  "engines": {
-    "node": ">=20.9.0"
-  },
-  "homepage": "https://github.com/Pure-Karma-Labs/emoji-datasource-openmoji#readme",
-  "bugs": {
-    "url": "https://github.com/Pure-Karma-Labs/emoji-datasource-openmoji/issues"
-  }
+  ]
 }

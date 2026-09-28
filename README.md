@@ -15,8 +15,12 @@ OpenMoji emoji images compatible with [emoji-datasource](https://www.npmjs.com/p
 ## Installation
 
 ```bash
-npm install emoji-datasource-openmoji
+npm install emoji-datasource-openmoji emoji-datasource
 ```
+
+`emoji-datasource` is an optional peer dependency (^16). The images are named and
+positioned after its data, so install it if you look emojis up by name, category or
+sheet position.
 
 or
 
@@ -43,7 +47,8 @@ const wave = emojiData.find(e => e.short_name === 'wave');
 imagePath(wave.skin_variations['1F3FD'].image); // → .../img/openmoji/128/1f44b-1f3fd.webp
 ```
 
-Or reference the files directly, for example with a bundler:
+`imagePath` and the package entry point are for Node. With a bundler (webpack, Metro,
+Vite), import the files directly instead:
 
 ```javascript
 const grinning = require('emoji-datasource-openmoji/img/openmoji/128/1f600.webp');
