@@ -3,23 +3,34 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- * Generate OpenMoji sprite sheets for emoji picker
+ * Generate OpenMoji emoji images compatible with emoji-datasource
  *
- * This script reads emoji-datasource to get grid positions,
- * loads corresponding OpenMoji SVGs, and generates sprite sheets
- * matching Signal's 62x62 grid layout.
+ * This script reads emoji-datasource for grid positions and image names,
+ * loads the corresponding OpenMoji SVGs, and generates:
+ *   - img/sheets/{32,64}.webp  sprite sheets on emoji-datasource's 62x62 grid
+ *   - img/openmoji/128/*.webp  one full-resolution image per emoji (including
+ *                              skin tone variants), named after emoji-datasource's
+ *                              `image` field
  */
 
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 
-const GRID_SIZE = 62; // 62x62 grid as used by Signal
+const GRID_SIZE = 62; // 62x62 grid as used by emoji-datasource
 const EMOJI_SIZES = [32, 64]; // Generate both 32px and 64px sprite sheets
 const MARGIN = 1; // 1px margin around each emoji
+const INDIVIDUAL_SIZE = 128; // Per-emoji image size
+const CONCURRENCY = 16;
+
+const TRANSPARENT = { r: 0, g: 0, b: 0, alpha: 0 };
+// Sprite sheets are one large image decoded whole; per-emoji images are shown
+// at full size. Tune them separately: changing one must not re-encode the other.
+const SHEET_WEBP_OPTIONS = { quality: 80, alphaQuality: 100, effort: 6 };
+const IMAGE_WEBP_OPTIONS = { quality: 80, alphaQuality: 100, effort: 6 };
 
 async function main() {
-  console.log('🎨 Building OpenMoji sprite sheets...\n');
+  console.log('🎨 Building OpenMoji emoji images...\n');
 
   // Load emoji data
   const emojiDataPath = path.join(__dirname, '../node_modules/emoji-datasource/emoji.json');
@@ -40,7 +51,59 @@ async function main() {
     await generateSpriteSheet(emojiData, openmojiDir, size);
   }
 
-  console.log('\n✅ OpenMoji sprite sheets generated successfully!');
+  await generateIndividualImages(emojiData, openmojiDir, INDIVIDUAL_SIZE);
+
+  console.log('\n✅ OpenMoji emoji images generated successfully!');
+}
+
+// Try multiple filename formats for OpenMoji
+function resolveSvgPath(openmojiDir, unified, nonQualified) {
+  const possibleFilenames = [
+    `${unified}.svg`,
+    `${unified.replace(/-FE0F/g, '')}.svg`, // without variation selector
+    `${nonQualified || ''}.svg`, // non-qualified version
+  ].filter(f => f && f !== '.svg');
+
+  for (const filename of possibleFilenames) {
+    const testPath = path.join(openmojiDir, filename);
+    if (fs.existsSync(testPath)) {
+      return testPath;
+    }
+  }
+  return null;
+}
+
+// Base emojis followed by their skin tone variations, flattened
+function allEntries(emojiData) {
+  const entries = [];
+  for (const emoji of emojiData) {
+    entries.push({ ...emoji, isVariation: false });
+    for (const variation of Object.values(emoji.skin_variations || {})) {
+      entries.push({ ...variation, isVariation: true });
+    }
+  }
+  return entries;
+}
+
+// Bounded-concurrency promise pool
+async function poolMap(items, concurrency, fn) {
+  const results = [];
+  let index = 0;
+
+  async function worker() {
+    while (index < items.length) {
+      const i = index++;
+      results[i] = await fn(items[i], i);
+    }
+  }
+
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, () => worker());
+  await Promise.all(workers);
+  return results;
+}
+
+function renderSvg(svgPath, size) {
+  return sharp(svgPath).resize(size, size, { fit: 'contain', background: TRANSPARENT });
 }
 
 async function generateSpriteSheet(emojiData, openmojiDir, emojiSize) {
@@ -57,103 +120,43 @@ async function generateSpriteSheet(emojiData, openmojiDir, emojiSize) {
       width: canvasSize,
       height: canvasSize,
       channels: 4,
-      background: { r: 0, g: 0, b: 0, alpha: 0 }
+      background: TRANSPARENT
     }
   });
 
-  // Collect all emoji composites
-  const composites = [];
+  const entries = allEntries(emojiData).filter(
+    e => e.sheet_x !== undefined && e.sheet_y !== undefined
+  );
+
   let found = 0;
-  let missing = 0;
   let skinToneVariants = 0;
+  let missing = 0;
 
-  // Helper function to process a single emoji
-  async function processEmoji(unified, sheet_x, sheet_y, nonQualified) {
-    if (sheet_x === undefined || sheet_y === undefined) {
-      return false;
-    }
-
-    // Try multiple filename formats for OpenMoji
-    const possibleFilenames = [
-      `${unified}.svg`,
-      `${unified.replace(/-FE0F/g, '')}.svg`, // without variation selector
-      `${nonQualified || ''}.svg`, // non-qualified version
-    ].filter(f => f && f !== '.svg');
-
-    let svgPath = null;
-    for (const filename of possibleFilenames) {
-      const testPath = path.join(openmojiDir, filename);
-      if (fs.existsSync(testPath)) {
-        svgPath = testPath;
-        break;
-      }
-    }
-
+  const composites = await poolMap(entries, CONCURRENCY, async (entry) => {
+    const svgPath = resolveSvgPath(openmojiDir, entry.unified, entry.non_qualified);
     if (!svgPath) {
-      return false;
+      missing++;
+      return null;
     }
 
     try {
-      // Load and resize SVG
-      const svgBuffer = await sharp(svgPath)
-        .resize(emojiSize, emojiSize, {
-          fit: 'contain',
-          background: { r: 0, g: 0, b: 0, alpha: 0 }
-        })
-        .png()
-        .toBuffer();
-
-      // Calculate position in sprite sheet
-      const x = (sheet_x * cellSize) + MARGIN;
-      const y = (sheet_y * cellSize) + MARGIN;
-
-      composites.push({
-        input: svgBuffer,
-        top: y,
-        left: x
-      });
-
-      return true;
-    } catch (error) {
-      console.warn(`⚠️  Failed to process ${unified}:`, error.message);
-      return false;
-    }
-  }
-
-  // Process all emojis
-  for (const emoji of emojiData) {
-    // Process base emoji
-    const processed = await processEmoji(
-      emoji.unified,
-      emoji.sheet_x,
-      emoji.sheet_y,
-      emoji.non_qualified
-    );
-
-    if (processed) {
-      found++;
-    } else if (emoji.sheet_x !== undefined && emoji.sheet_y !== undefined) {
-      missing++;
-    }
-
-    // Process skin tone variations
-    if (emoji.skin_variations) {
-      for (const [skinTone, variation] of Object.entries(emoji.skin_variations)) {
-        const varProcessed = await processEmoji(
-          variation.unified,
-          variation.sheet_x,
-          variation.sheet_y,
-          variation.non_qualified
-        );
-
-        if (varProcessed) {
-          skinToneVariants++;
-        } else if (variation.sheet_x !== undefined && variation.sheet_y !== undefined) {
-          missing++;
-        }
+      const input = await renderSvg(svgPath, emojiSize).png().toBuffer();
+      if (entry.isVariation) {
+        skinToneVariants++;
+      } else {
+        found++;
       }
+      return {
+        input,
+        top: (entry.sheet_y * cellSize) + MARGIN,
+        left: (entry.sheet_x * cellSize) + MARGIN
+      };
+    } catch (error) {
+      console.warn(`⚠️  Failed to process ${entry.unified}:`, error.message);
+      missing++;
+      return null;
     }
-  }
+  });
 
   console.log(`  ✓ Found ${found} base emojis + ${skinToneVariants} skin tone variants`);
   if (missing > 0) {
@@ -162,16 +165,63 @@ async function generateSpriteSheet(emojiData, openmojiDir, emojiSize) {
 
   // Composite all emojis onto canvas
   const outputPath = path.join(__dirname, `../img/sheets/${emojiSize}.webp`);
+  const placed = composites.filter(Boolean);
 
-  console.log(`  📦 Compositing ${composites.length} emojis...`);
+  console.log(`  📦 Compositing ${placed.length} emojis...`);
 
   await canvas
-    .composite(composites)
-    .webp({ quality: 75, alphaQuality: 20, effort: 6 })
+    .composite(placed)
+    .webp(SHEET_WEBP_OPTIONS)
     .toFile(outputPath);
 
   const stats = fs.statSync(outputPath);
   console.log(`  ✅ Saved ${outputPath} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`);
+}
+
+async function generateIndividualImages(emojiData, openmojiDir, size) {
+  console.log(`\n🖼  Generating ${size}px individual images...`);
+
+  const outputDir = path.join(__dirname, `../img/openmoji/${size}`);
+
+  // Wipe and recreate output directory for idempotency
+  fs.rmSync(outputDir, { recursive: true, force: true });
+  fs.mkdirSync(outputDir, { recursive: true });
+
+  const entries = allEntries(emojiData)
+    .filter(e => e.image)
+    .sort((a, b) => a.image.localeCompare(b.image));
+
+  let generated = 0;
+  const missingBase = [];
+  const missingVariations = [];
+
+  await poolMap(entries, CONCURRENCY, async (entry) => {
+    const svgPath = resolveSvgPath(openmojiDir, entry.unified, entry.non_qualified);
+    if (!svgPath) {
+      (entry.isVariation ? missingVariations : missingBase).push(entry.unified);
+      return;
+    }
+
+    const filename = entry.image.replace(/\.png$/, '.webp');
+    await renderSvg(svgPath, size)
+      .webp(IMAGE_WEBP_OPTIONS)
+      .toFile(path.join(outputDir, filename));
+    generated++;
+  });
+
+  const files = fs.readdirSync(outputDir);
+  const totalBytes = files.reduce((sum, f) => sum + fs.statSync(path.join(outputDir, f)).size, 0);
+  console.log(`  ✓ Generated ${generated} images (${(totalBytes / 1024 / 1024).toFixed(2)} MB)`);
+
+  if (missingVariations.length > 0) {
+    console.log(`  ⚠ Skipped ${missingVariations.length} skin tone variants: ${missingVariations.join(', ')}`);
+  }
+
+  // Every base emoji must resolve to an OpenMoji SVG
+  if (missingBase.length > 0) {
+    console.error(`❌ ${missingBase.length} base emojis have no OpenMoji SVG: ${missingBase.join(', ')}`);
+    process.exit(1);
+  }
 }
 
 main().catch(error => {
