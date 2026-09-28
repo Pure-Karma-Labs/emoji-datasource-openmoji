@@ -1,7 +1,7 @@
 {
   "name": "emoji-datasource-openmoji",
-  "version": "1.0.0",
-  "description": "OpenMoji emoji sprite sheets compatible with emoji-datasource. Drop-in replacement for emoji-datasource-apple/google/twitter.",
+  "version": "1.1.0",
+  "description": "OpenMoji emoji images compatible with emoji-datasource: 128px per-emoji WebP files plus 32/64px sprite sheets. Drop-in replacement for emoji-datasource-apple/google/twitter.",
   "main": "index.js",
   "scripts": {
     "build": "node scripts/build.js"
@@ -18,20 +18,26 @@
   "license": "CC-BY-SA-4.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/alexg-g/emoji-datasource-openmoji.git"
+    "url": "git+https://github.com/Pure-Karma-Labs/emoji-datasource-openmoji.git"
   },
   "dependencies": {
-    "emoji-datasource": "^16.0.0",
-    "openmoji": "^16.0.0"
+    "emoji-datasource": "^16.0.0"
   },
   "devDependencies": {
-    "sharp": "^0.34.4"
+    "openmoji": "^17.0.0",
+    "sharp": "^0.35.5"
   },
   "files": [
     "img/",
-    "scripts/",
     "index.js",
     "README.md",
     "LICENSE"
-  ]
+  ],
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "homepage": "https://github.com/Pure-Karma-Labs/emoji-datasource-openmoji#readme",
+  "bugs": {
+    "url": "https://github.com/Pure-Karma-Labs/emoji-datasource-openmoji/issues"
+  }
 }

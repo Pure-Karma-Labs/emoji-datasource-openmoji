@@ -1,17 +1,15 @@
 # emoji-datasource-openmoji
 
-OpenMoji emoji sprite sheets compatible with [emoji-datasource](https://www.npmjs.com/package/emoji-datasource). Drop-in replacement for `emoji-datasource-apple`, `emoji-datasource-google`, or `emoji-datasource-twitter`.
+OpenMoji emoji images compatible with [emoji-datasource](https://www.npmjs.com/package/emoji-datasource): one full-resolution 128px image per emoji, plus 32px and 64px sprite sheets. Drop-in replacement for `emoji-datasource-apple`, `emoji-datasource-google`, or `emoji-datasource-twitter`.
 
 ![OpenMoji emoji examples](./public/example-emojis-64px.png)
 
 ## Features
 
-- ✅ **Full compatibility** with emoji-datasource grid layout (62x62)
-- ✅ **3,786 emojis** including 1,875 skin tone variants
-- ✅ **Smaller file sizes** than Apple emoji sprites
-  - 32px: 1.0 MB (vs 1.3 MB Apple)
-  - 64px: 2.4 MB (vs 3.5 MB Apple)
-- ✅ **Open source** OpenMoji design under CC-BY-SA 4.0
+- ✅ **128px individual images** for every emoji, named after emoji-datasource's `image` field
+- ✅ **Full compatibility** with emoji-datasource grid layout (62x62) for the sprite sheets
+- ✅ **3,786 emojis** including 1,875 skin tone variants, in both formats
+- ✅ **Open source** OpenMoji 17 designs under CC-BY-SA 4.0
 - ✅ **WebP format** for optimal compression
 
 ## Installation
@@ -28,7 +26,35 @@ pnpm add emoji-datasource-openmoji
 
 ## Usage
 
-### As a drop-in replacement
+### Individual images (recommended)
+
+Every emoji, including each skin tone variant, has its own 128×128 WebP at
+`img/openmoji/128/<image>.webp`, where `<image>` is the entry's `image` field from
+emoji-datasource with `.png` swapped for `.webp`:
+
+```javascript
+const emojiData = require('emoji-datasource');
+const { imagePath } = require('emoji-datasource-openmoji');
+
+const grinning = emojiData.find(e => e.short_name === 'grinning');
+imagePath(grinning.image); // → .../img/openmoji/128/1f600.webp
+
+const wave = emojiData.find(e => e.short_name === 'wave');
+imagePath(wave.skin_variations['1F3FD'].image); // → .../img/openmoji/128/1f44b-1f3fd.webp
+```
+
+Or reference the files directly, for example with a bundler:
+
+```javascript
+const grinning = require('emoji-datasource-openmoji/img/openmoji/128/1f600.webp');
+```
+
+Prefer these over the sprite sheets when you can. Each emoji is rendered from the full
+OpenMoji artwork at 128px, so it stays sharp at large sizes. You also avoid decoding a
+whole 2108px or 4092px sheet just to show a single emoji. On iOS, a clipped sheet image
+per emoji can exhaust memory.
+
+### Sprite sheets as a drop-in replacement
 
 If you're currently using `emoji-datasource-apple`:
 
@@ -67,10 +93,11 @@ console.log(emoji.sheet_x, emoji.sheet_y); // Grid position in sprite sheet
 }
 ```
 
-## Available Sprite Sheets
+## Available Images
 
-- `img/sheets/32.webp` - 32×32px emojis (2108×2108px total)
-- `img/sheets/64.webp` - 64×64px emojis (4092×4092px total)
+- `img/openmoji/128/*.webp` - 3,786 individual 128×128px images (7.8 MB total)
+- `img/sheets/32.webp` - 32×32px emojis (2108×2108px total, 1.2 MB)
+- `img/sheets/64.webp` - 64×64px emojis (4092×4092px total, 2.8 MB)
 
 ![Size comparison](./public/size-comparison.png)
 
@@ -86,9 +113,19 @@ npm run build
 ```
 
 This will:
-1. Load emoji positions from `emoji-datasource`
-2. Load corresponding OpenMoji SVGs
+1. Load emoji positions and image names from `emoji-datasource`
+2. Load corresponding OpenMoji SVGs (the `openmoji` devDependency)
 3. Generate sprite sheets at `img/sheets/*.webp`
+4. Generate individual images at `img/openmoji/128/*.webp`
+
+The build fails if any base emoji has no OpenMoji SVG. Output is deterministic, so
+re-running produces no diff.
+
+## Releasing
+
+Releases are published from GitHub Actions using npm trusted publishing
+(`.github/workflows/publish.yml`), with no npm token. Bump `version` in `package.json` on
+`main`, then publish a GitHub release tagged `v<version>`.
 
 ## Grid Layout
 
@@ -108,7 +145,8 @@ All 1,875 skin tone variants are included:
 
 ## License
 
-- **Sprite sheets & build script**: CC-BY-SA 4.0
+- **Images (sprite sheets & individual files)**: CC-BY-SA 4.0
+- **Build script** (`scripts/build.js`, not included in the npm package): AGPL-3.0-only
 - **OpenMoji designs**: CC-BY-SA 4.0 ([OpenMoji](https://openmoji.org))
 - **Emoji data**: MIT ([emoji-datasource](https://github.com/iamcal/emoji-data))
 
@@ -116,7 +154,7 @@ All 1,875 skin tone variants are included:
 
 - [OpenMoji](https://openmoji.org) - Beautiful open source emoji designs
 - [emoji-datasource](https://github.com/iamcal/emoji-data) - Emoji metadata and grid positions
-- Built for [Orbital](https://github.com/alexg-g/Orbital-Desktop) - Private family social network
+- Built for [Orbital](https://github.com/Pure-Karma-Labs/Orbital-Mobile) - Private family social network
 
 ## Related Projects
 
